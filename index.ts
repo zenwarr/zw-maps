@@ -31,16 +31,16 @@ export interface MapOptions {
 }
 
 export class Map {
-  static init(options?: MapOptions): void {
+  static init(options?: MapOptions, factory?: MapFactory): void {
     let rootSelector = options && options.rootSelector ? options.rootSelector : DEF_OPTIONS.rootSelector || '';
     let maps = document.querySelectorAll(rootSelector);
     for (let q = 0; q < maps.length; ++q) {
-      this.initMap(maps[q] as Element, options);
+      this.initMap(maps[q] as Element, options, factory);
     }
   }
 
-  static initMap(root: Element, options?: MapOptions): Map|null {
-    return this.fromRoot(root) || (root ? new Map(root, options) : null);
+  static initMap(root: Element, options?: MapOptions, factory?: MapFactory): Map|null {
+    return this.fromRoot(root) || (root ? (factory ? factory(root, options) : new Map(root, options)) : null);
   }
 
   static fromRoot(elem: Element): Map|null {
@@ -127,6 +127,8 @@ export class Map {
   }
 }
 
+export type MapFactory = (root: Element, options?: MapOptions) => Map;
+
 function assign<T>(...objs: T[]): T {
   if ((Object as any).assign) {
     return (Object as any).assign.apply(this, objs);
@@ -146,7 +148,7 @@ export class YandexMap extends Map {
     }
 
     ymaps.ready(() => {
-      Map.init(options);
+      Map.init(options, (root, options) => new YandexMap(root, options));
     });
   }
 

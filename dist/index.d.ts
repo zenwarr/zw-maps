@@ -15,8 +15,8 @@ export interface MapOptions {
     disableScrollZoom?: boolean;
 }
 export declare class Map {
-    static init(options?: MapOptions): void;
-    static initMap(root: Element, options?: MapOptions): Map | null;
+    static init(options?: MapOptions, factory?: MapFactory): void;
+    static initMap(root: Element, options?: MapOptions, factory?: MapFactory): Map | null;
     static fromRoot(elem: Element): Map | null;
     readonly root: Element;
     readonly mapContainer: Element;
@@ -34,6 +34,7 @@ export declare class Map {
     protected _parseMap(): void;
     protected _parsePoint(point: Element): PointData;
 }
+export declare type MapFactory = (root: Element, options?: MapOptions) => Map;
 export interface YandexMapPointData extends PointData {
     placemark: ymaps.Placemark | null;
 }

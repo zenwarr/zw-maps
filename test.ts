@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {Coords, Map, PointData} from './index';
+import {Coords, Map, PointData, YandexMap} from './index';
 
 describe("map", function () {
   function init(html: string): void {
@@ -18,6 +18,17 @@ describe("map", function () {
     expect(map.root).to.be.equal(elem('map'));
     expect(Map.fromRoot(elem('map'))).to.be.equal(map);
     expect(map.mapContainer).to.exist;
+  });
+
+  it('should create objects with factory', function (done) {
+    init(`<div class="js-map" id="map"></div>`);
+
+    Map.init({}, (root, options) => {
+      expect(root).to.be.equal(elem('map'));
+      expect(options).to.be.deep.equal({});
+      done();
+      return Map.initMap(root, options) as Map;
+    });
   });
 
   it('should parse map params', function () {
