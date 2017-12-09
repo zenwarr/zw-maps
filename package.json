@@ -7,7 +7,7 @@
   "dependencies": {
     "@types/google-maps": "^3.2.0",
     "@types/yandex-maps": "^2.1.2",
-    "lodash.assign": "^4.2.0",
+    "lodash.assign": "^4.2.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.5",
