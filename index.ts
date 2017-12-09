@@ -71,7 +71,7 @@ export class Map {
     this._root = root;
     (root as any).__hidden_map = this;
 
-    let container = this._root.querySelector(this._options.containerClass || '');
+    let container = this._root.querySelector('.' + this._options.containerClass || '');
     if (!container) {
       // create container itself
       container = document.createElement('div');
