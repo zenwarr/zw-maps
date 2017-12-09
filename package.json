@@ -5,12 +5,15 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-
+    "@types/google-maps": "^3.2.0",
+    "lodash.assign": "^4.2.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.5",
     "@types/jsdom": "^11.0.4",
+    "@types/lodash.assign": "^4.2.3",
     "@types/mocha": "^2.2.44",
+    "@types/yandex-maps": "^2.1.2",
     "chai": "^4.1.2",
     "jsdom": "^11.3.0",
     "jsdom-global": "^3.0.2",
