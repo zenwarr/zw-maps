@@ -1,3 +1,4 @@
+/// <reference types="yandex-maps" />
 export interface Coords {
     lat: number;
     long: number;
@@ -11,6 +12,7 @@ export interface MapOptions {
     pointSelector?: string;
     containerClass?: string;
     initialZoom?: number;
+    disableScrollZoom?: boolean;
 }
 export declare class Map {
     static init(options?: MapOptions): void;
@@ -31,4 +33,15 @@ export declare class Map {
     protected constructor(root: Element, options?: MapOptions);
     protected _parseMap(): void;
     protected _parsePoint(point: Element): PointData;
+}
+export interface YandexMapPointData extends PointData {
+    placemark: ymaps.Placemark | null;
+}
+export declare class YandexMap extends Map {
+    static init(options?: MapOptions): void;
+    /** Protected area **/
+    protected constructor(root: Element, options?: MapOptions);
+    protected _addPlacemark(point: YandexMapPointData): void;
+    protected _parsePoint(elem: Element): YandexMapPointData;
+    protected _ymap: ymaps.Map;
 }
