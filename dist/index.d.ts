@@ -1,4 +1,5 @@
 /// <reference types="yandex-maps" />
+/// <reference types="googlemaps" />
 export interface Coords {
     lat: number;
     long: number;
@@ -26,9 +27,8 @@ export interface MapOptions {
     disableScrollZoom?: boolean;
     pointTemplates?: PointTemplate[];
 }
-export declare class Map {
-    static init(options?: MapOptions, factory?: MapFactory): void;
-    static initMap(root: Element, options?: MapOptions, factory?: MapFactory): Map | null;
+export declare abstract class Map {
+    constructor(root: Element, options?: MapOptions);
     static fromRoot(elem: Element): Map | null;
     readonly root: Element;
     readonly mapContainer: Element;
@@ -46,22 +46,41 @@ export declare class Map {
     protected _initialZoom: number | null;
     protected _points: PointData[];
     protected _options: MapOptions;
-    protected constructor(root: Element, options?: MapOptions);
     protected _parseMap(): void;
     protected _parsePoint(point: Element): PointData;
     protected _parseTemplate(elem: Element): PointTemplate;
+    protected abstract _panToPoint(point: PointData): void;
+}
+export interface MapType {
+    new (root: Element, options?: MapOptions): Map;
+}
+export declare abstract class MapFactory {
+    static init(mapType: MapType, options?: MapOptions): void;
+    static initMap(mapType: MapType, root: Element, options?: MapOptions): Map;
+}
+export declare class DummyMap extends Map {
     protected _panToPoint(point: PointData): void;
 }
-export declare type MapFactory = (root: Element, options?: MapOptions) => Map;
 export interface YandexMapPointData extends PointData {
     placemark: ymaps.Placemark | null;
 }
 export declare class YandexMap extends Map {
-    static init(options?: MapOptions): void;
+    constructor(root: Element, options?: MapOptions);
     /** Protected area **/
-    protected constructor(root: Element, options?: MapOptions);
     protected _addPlacemark(point: YandexMapPointData): void;
     protected _parsePoint(elem: Element): YandexMapPointData;
     protected _panToPoint(point: YandexMapPointData): void;
     protected _ymap: ymaps.Map;
+}
+export interface GoogleMapPointData extends PointData {
+    marker: google.maps.Marker | null;
+    infoWindow: google.maps.InfoWindow | null;
+}
+export declare class GoogleMap extends Map {
+    constructor(root: Element, options?: MapOptions);
+    /** Protected area **/
+    protected _addMarker(point: GoogleMapPointData): void;
+    protected _parsePoint(elem: Element): GoogleMapPointData;
+    protected _panToPoint(point: GoogleMapPointData): void;
+    protected _gmap: google.maps.Map;
 }

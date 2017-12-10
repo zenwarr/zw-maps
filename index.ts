@@ -44,17 +44,49 @@ export interface MapOptions {
   pointTemplates?: PointTemplate[];
 }
 
-export class Map {
-  static init(options?: MapOptions, factory?: MapFactory): void {
-    let rootSelector = options && options.rootSelector ? options.rootSelector : DEF_OPTIONS.rootSelector || '';
-    let maps = document.querySelectorAll(rootSelector);
-    for (let q = 0; q < maps.length; ++q) {
-      this.initMap(maps[q] as Element, options, factory);
+export abstract class Map {
+  constructor(root: Element, options?: MapOptions) {
+    this._options = assign(options || {}, DEF_OPTIONS) as MapOptions;
+    this._root = root;
+    if ((root as any).__hidden_map) {
+      throw new Error('Cannot construct a map on the same object twice');
     }
-  }
+    (root as any).__hidden_map = this;
 
-  static initMap(root: Element, options?: MapOptions, factory?: MapFactory): Map|null {
-    return this.fromRoot(root) || (root ? (factory ? factory(root, options) : new Map(root, options)) : null);
+    let container = this._root.querySelector('.' + this._options.containerClass || '');
+    if (!container) {
+      // create container itself
+      container = document.createElement('div');
+      container.classList.add(this._options.containerClass || '');
+      this._root.appendChild(container);
+    }
+    this._mapContainer = container;
+
+    this._parseMap();
+    let points = this._root.querySelectorAll(this._options.pointSelector as string);
+    for (let q = 0; q < points.length; ++q) {
+      try {
+        this._points.push(this._parsePoint(points[q]));
+      } catch (err) {
+        console.warn('Error while processing point element', points[q], ': ', err);
+      }
+    }
+
+    if (this._options.templateSelector) {
+      let templates = this._root.querySelectorAll(this._options.templateSelector);
+      for (let q = 0; q < templates.length; ++q) {
+        try {
+          let templ = this._parseTemplate(templates[q]);
+          if (this._options.pointTemplates) {
+            this._options.pointTemplates.push(templ);
+          } else {
+            this._options.pointTemplates = [ templ ];
+          }
+        } catch (err) {
+          console.warn(`Error while processing template element`, templates[q], ': ', err);
+        }
+      }
+    }
   }
 
   static fromRoot(elem: Element): Map|null {
@@ -114,47 +146,6 @@ export class Map {
   protected _initialZoom: number|null = null;
   protected _points: PointData[] = [];
   protected _options: MapOptions;
-
-  protected constructor(root: Element, options?: MapOptions) {
-    this._options = assign(options || {}, DEF_OPTIONS) as MapOptions;
-    this._root = root;
-    (root as any).__hidden_map = this;
-
-    let container = this._root.querySelector('.' + this._options.containerClass || '');
-    if (!container) {
-      // create container itself
-      container = document.createElement('div');
-      container.classList.add(this._options.containerClass || '');
-      this._root.appendChild(container);
-    }
-    this._mapContainer = container;
-
-    this._parseMap();
-    let points = this._root.querySelectorAll(this._options.pointSelector as string);
-    for (let q = 0; q < points.length; ++q) {
-      try {
-        this._points.push(this._parsePoint(points[q]));
-      } catch (err) {
-        console.warn('Error while processing point element', points[q], ': ', err);
-      }
-    }
-
-    if (this._options.templateSelector) {
-      let templates = this._root.querySelectorAll(this._options.templateSelector);
-      for (let q = 0; q < templates.length; ++q) {
-        try {
-          let templ = this._parseTemplate(templates[q]);
-          if (this._options.pointTemplates) {
-            this._options.pointTemplates.push(templ);
-          } else {
-            this._options.pointTemplates = [ templ ];
-          }
-        } catch (err) {
-          console.warn(`Error while processing template element`, templates[q], ': ', err);
-        }
-      }
-    }
-  }
 
   protected _parseMap(): void {
     let centerLat = this._root.getAttribute('data-lat'),
@@ -223,12 +214,26 @@ export class Map {
     };
   }
 
-  protected _panToPoint(point: PointData): void {
-
-  }
+  protected abstract _panToPoint(point: PointData): void;
 }
 
-export type MapFactory = (root: Element, options?: MapOptions) => Map;
+export interface MapType {
+  new (root: Element, options?: MapOptions): Map;
+}
+
+export abstract class MapFactory {
+  static init(mapType: MapType, options?: MapOptions): void {
+    let rootSelector = options && options.rootSelector ? options.rootSelector : DEF_OPTIONS.rootSelector || '';
+    let maps = document.querySelectorAll(rootSelector);
+    for (let q = 0; q < maps.length; ++q) {
+      this.initMap(mapType, maps[q] as Element, options);
+    }
+  }
+
+  static initMap(mapType: MapType, root: Element, options?: MapOptions): Map {
+    return Map.fromRoot(root) || new mapType(root, options);
+  }
+}
 
 function assign<T>(...objs: T[]): T {
   if ((Object as any).assign) {
@@ -238,25 +243,23 @@ function assign<T>(...objs: T[]): T {
   }
 }
 
+export class DummyMap extends Map {
+  protected _panToPoint(point: PointData): void {
+    // do nothing
+  }
+}
+
 export interface YandexMapPointData extends PointData {
   placemark: ymaps.Placemark|null;
 }
 
 export class YandexMap extends Map {
-  static init(options?: MapOptions): void {
+  constructor(root: Element, options?: MapOptions) {
+    super(root, options);
+
     if (!(window as any).ymaps) {
       throw new Error('Yandex maps api is not detected, make sure you have plugged the scripts in');
     }
-
-    ymaps.ready(() => {
-      Map.init(options, (root, options) => new YandexMap(root, options));
-    });
-  }
-
-  /** Protected area **/
-
-  protected constructor(root: Element, options?: MapOptions) {
-    super(root, options);
 
     if (this.mapContainer) {
       let center = this.initialCenter || { lat: DEF_CENTER_LAT, long: DEF_CENTER_LONG } as Coords;
@@ -275,6 +278,8 @@ export class YandexMap extends Map {
       }
     }
   }
+
+  /** Protected area **/
 
   protected _addPlacemark(point: YandexMapPointData): void {
     let layout: any = undefined;
@@ -311,4 +316,75 @@ export class YandexMap extends Map {
   }
 
   protected _ymap: ymaps.Map;
+}
+
+export interface GoogleMapPointData extends PointData {
+  marker: google.maps.Marker|null;
+  infoWindow: google.maps.InfoWindow|null;
+}
+
+export class GoogleMap extends Map {
+  constructor(root: Element, options?: MapOptions) {
+    super(root, options);
+
+    if (!(window as any).google || !google.maps) {
+      throw new Error('Google maps api is not detected, make sure you have plugged the scripts in');
+    }
+
+    if (this.mapContainer) {
+      let center = this.initialCenter as Coords;
+      this._gmap = new google.maps.Map(this.mapContainer, {
+        center: {
+          lat: center.lat,
+          lng: center.long
+        },
+        zoom: this.initialZoom,
+        scrollwheel: !this._options.disableScrollZoom
+      });
+
+      for (let q = 0; q < this._points.length; ++q) {
+        let point = this._points[q] as GoogleMapPointData;
+        this._addMarker(point);
+      }
+    }
+  }
+
+  /** Protected area **/
+
+  protected _addMarker(point: GoogleMapPointData): void {
+    point.marker = new google.maps.Marker({
+      position: {
+        lat: point.lat,
+        lng: point.long
+      },
+      map: this._gmap,
+      title: point.title
+    });
+
+    if (point.balloonContent) {
+      point.infoWindow = new google.maps.InfoWindow({
+        content: point.balloonContent
+      });
+      point.marker.addListener('click', () => {
+        if (point.infoWindow && point.marker) {
+          point.infoWindow.open(this._gmap, point.marker);
+        }
+      });
+    }
+  }
+
+  protected _parsePoint(elem: Element): GoogleMapPointData {
+    let point = super._parsePoint(elem) as GoogleMapPointData;
+    point.marker = null;
+    point.infoWindow = null;
+    return point;
+  }
+
+  protected _panToPoint(point: GoogleMapPointData): void {
+    if (point && this._gmap) {
+      this._gmap.panTo(new google.maps.LatLng(point.lat, point.long));
+    }
+  }
+
+  protected _gmap: google.maps.Map;
 }
