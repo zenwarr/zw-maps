@@ -8,6 +8,7 @@ const DEF_OPTIONS: MapOptions = {
   rootSelector: '.js-map',
   pointSelector: '.js-map__point',
   containerClass: 'js-map__map',
+  templateSelector: '.js-map__point-template',
   initialZoom: DEF_INITIAL_ZOOM,
   disableScrollZoom: true
 };
@@ -20,14 +21,27 @@ export interface Coords {
 export interface PointData extends Coords {
   title?: string;
   balloonContent?: string;
+  template?: string;
+  name?: string;
+}
+
+export interface PointTemplate {
+  name: string;
+  imageUrl?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  imageOffsetX?: number;
+  imageOffsetY?: number;
 }
 
 export interface MapOptions {
   rootSelector?: string;
   pointSelector?: string;
+  templateSelector?: string;
   containerClass?: string;
   initialZoom?: number;
   disableScrollZoom?: boolean;
+  pointTemplates?: PointTemplate[];
 }
 
 export class Map {
@@ -56,6 +70,41 @@ export class Map {
   get initialZoom(): number { return this._initialZoom || this._options.initialZoom || DEF_INITIAL_ZOOM; }
 
   get points(): PointData[] { return this._points; }
+
+  get pointTemplates(): PointTemplate[] { return this._options.pointTemplates || [] }
+
+  getPointTemplate(name: string): PointTemplate|null {
+    if (this._options.pointTemplates) {
+      let tpls = this._options.pointTemplates;
+      for (let q = 0; q < tpls.length; ++q) {
+        if (tpls[q].name === name) {
+          return tpls[q];
+        }
+      }
+    }
+    return null;
+  }
+
+  getPoint(name: string): PointData|null {
+    if (!name) {
+      return null;
+    }
+
+    for (let q = 0; q < this._points.length; ++q) {
+      if (this._points[q].name === name) {
+        return this._points[q];
+      }
+    }
+
+    return null;
+  }
+
+  panToPoint(pointName: string): void {
+    let point = this.getPoint(pointName);
+    if (point) {
+      this._panToPoint(point);
+    }
+  }
 
   /** Protected area **/
 
@@ -89,6 +138,22 @@ export class Map {
         console.warn('Error while processing point element', points[q], ': ', err);
       }
     }
+
+    if (this._options.templateSelector) {
+      let templates = this._root.querySelectorAll(this._options.templateSelector);
+      for (let q = 0; q < templates.length; ++q) {
+        try {
+          let templ = this._parseTemplate(templates[q]);
+          if (this._options.pointTemplates) {
+            this._options.pointTemplates.push(templ);
+          } else {
+            this._options.pointTemplates = [ templ ];
+          }
+        } catch (err) {
+          console.warn(`Error while processing template element`, templates[q], ': ', err);
+        }
+      }
+    }
   }
 
   protected _parseMap(): void {
@@ -118,12 +183,48 @@ export class Map {
 
     let balloonContent = point.innerHTML || undefined;
 
+    let template = point.getAttribute('data-template') || undefined;
+
+    let name = point.getAttribute('data-name') || undefined;
+
     return {
       lat: +lat,
       long: +long,
       title,
-      balloonContent
+      balloonContent,
+      template,
+      name
     };
+  }
+
+  protected _parseTemplate(elem: Element): PointTemplate {
+    let name = elem.getAttribute('data-name'),
+        imageUrl = elem.getAttribute('data-image-url'),
+        imageWidth = elem.getAttribute('data-image-width'),
+        imageHeight = elem.getAttribute('data-image-height'),
+        imageOffsetX = elem.getAttribute('data-image-offset-x'),
+        imageOffsetY = elem.getAttribute('data-image-offset-y');
+
+    if (!name) {
+      throw new Error('Invalid point template data: element should have a non-empty data-name attribute');
+    }
+
+    const checker = (x: string|null): number|undefined => {
+      return x && !isNaN(+x) ? +x : undefined
+    };
+
+    return {
+      name,
+      imageUrl: imageUrl || undefined,
+      imageWidth: checker(imageWidth),
+      imageHeight: checker(imageHeight),
+      imageOffsetX: checker(imageOffsetX),
+      imageOffsetY: checker(imageOffsetY)
+    };
+  }
+
+  protected _panToPoint(point: PointData): void {
+
   }
 }
 
@@ -176,10 +277,23 @@ export class YandexMap extends Map {
   }
 
   protected _addPlacemark(point: YandexMapPointData): void {
+    let layout: any = undefined;
+    if (point.template) {
+      let templ = this.getPointTemplate(point.template);
+      if (templ && templ.imageUrl && templ.imageHeight && templ.imageWidth) {
+        layout = {
+          iconLayout: 'default#image',
+          iconImageHref: templ.imageUrl,
+          iconImageSize: [ templ.imageWidth, templ.imageHeight ],
+          iconImageOffset: [ templ.imageOffsetX, templ.imageOffsetY ]
+        }
+      }
+    }
+
     let placemark = new ymaps.Placemark([ point.lat, point.long ], {
       balloonContent: point.balloonContent || point.title,
       hintContent: point.title || ''
-    });
+    }, layout);
     point.placemark = placemark;
     this._ymap.geoObjects.add(placemark);
   }
@@ -188,6 +302,12 @@ export class YandexMap extends Map {
     let point = super._parsePoint(elem) as YandexMapPointData;
     point.placemark = null;
     return point;
+  }
+
+  protected _panToPoint(point: YandexMapPointData): void {
+    if (point) {
+      this._ymap.panTo([point.lat, point.long]);
+    }
   }
 
   protected _ymap: ymaps.Map;

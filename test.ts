@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {Coords, Map, PointData, YandexMap} from './index';
+import {Coords, Map, PointData, PointTemplate, YandexMap} from './index';
 
 describe("map", function () {
   function init(html: string): void {
@@ -53,8 +53,48 @@ describe("map", function () {
         lat: 10,
         long: 15,
         title: 'some title',
-        balloonContent: 'Balloon <span>content</span>'
+        balloonContent: 'Balloon <span>content</span>',
+        template: undefined,
+        name: undefined
       }
     ] as PointData[]);
+  });
+
+  it('should get points by name', function () {
+    init(`<div id="map">
+      <div class="js-map__point" data-lat="10" data-long="20" data-name="first"></div>
+      <div class="js-map__point" data-lat="30" data-long="40" data-name="second"></div>
+    </div>`);
+
+    let map = Map.initMap(elem('map')) as Map;
+    expect(map.points).to.have.lengthOf(2);
+    expect(map.getPoint('first')).to.have.property('name', 'first');
+    expect(map.getPoint('first')).to.have.property('lat', 10);
+    expect(map.getPoint('second')).to.have.property('name', 'second');
+    expect(map.getPoint('third')).to.be.null;
+  });
+
+  it('should parse template', function () {
+    init(`<div id="map">
+      <div class="js-map__point-template" data-name="custom" data-image-url="/image.png" data-image-width="10" data-image-height="30"
+          data-image-offset-x="4" data-image-offset-y="5"></div>
+      <div class="js-map__point" data-template="custom" data-lat="10" data-long="10"></div>
+    </div>`);
+
+    let map = Map.initMap(elem('map')) as Map;
+    expect(map.pointTemplates).to.be.deep.equal([
+      {
+        name: 'custom',
+        imageUrl: '/image.png',
+        imageWidth: 10,
+        imageHeight: 30,
+        imageOffsetX: 4,
+        imageOffsetY: 5
+      }
+    ] as PointTemplate[]);
+    expect(map.getPointTemplate('custom')).to.exist;
+
+    let point = map.points[0];
+    expect(point.template).to.be.equal('custom');
   });
 });
