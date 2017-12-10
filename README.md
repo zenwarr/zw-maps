@@ -21,6 +21,27 @@ maps.MapFactory.init(maps.GoogleMap);
 
 By default, all elements with class `js-map` are used as map roots.
 All classes can be changed with options object.
+Option object can have the following attributes:
+`rootSelector`, `pointSelector`, `templateSelector`, `containerClass`, `initialZoom`.
+The meaning of these properties is clear from names.
+Note that properties ending with `selector` are CSS selector as passed to `querySelector` method, but `containerClass` (which defaults to `js-map__map`) isn't a selector, but a class name.
+`disableScrollZoom` can be set to `true` (it is by default) to disable zooming a map with mouse wheel or to `false` to allow it.
+`pointTemplates` can be used to define templates without encoding them in HTML.
+This property' value should contain an array of `PointTemplate` objects (see below for info on templates).
+TypeScript definition of `PointTemplate` follows:
+
+```ts
+interface PointTemplate {
+  name: string;
+  imageUrl?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  imageOffsetX?: number;
+  imageOffsetY?: number;
+}
+```
+
+The purpose of its attributes is clear from names.
 
 ## MapFactory.init(mapType, options)
 
