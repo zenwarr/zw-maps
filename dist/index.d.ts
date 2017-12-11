@@ -15,8 +15,8 @@ export interface PointTemplate {
     imageUrl?: string;
     imageWidth?: number;
     imageHeight?: number;
-    imageOffsetX?: number;
-    imageOffsetY?: number;
+    imageAnchorX?: number;
+    imageAnchorY?: number;
 }
 export interface MapOptions {
     rootSelector?: string;

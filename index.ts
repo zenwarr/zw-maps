@@ -30,8 +30,8 @@ export interface PointTemplate {
   imageUrl?: string;
   imageWidth?: number;
   imageHeight?: number;
-  imageOffsetX?: number;
-  imageOffsetY?: number;
+  imageAnchorX?: number;
+  imageAnchorY?: number;
 }
 
 export interface MapOptions {
@@ -193,8 +193,8 @@ export abstract class Map {
         imageUrl = elem.getAttribute('data-image-url'),
         imageWidth = elem.getAttribute('data-image-width'),
         imageHeight = elem.getAttribute('data-image-height'),
-        imageOffsetX = elem.getAttribute('data-image-offset-x'),
-        imageOffsetY = elem.getAttribute('data-image-offset-y');
+        imageAnchorX = elem.getAttribute('data-image-anchor-x'),
+        imageAnchorY = elem.getAttribute('data-image-anchor-y');
 
     if (!name) {
       throw new Error('Invalid point template data: element should have a non-empty data-name attribute');
@@ -209,8 +209,8 @@ export abstract class Map {
       imageUrl: imageUrl || undefined,
       imageWidth: checker(imageWidth),
       imageHeight: checker(imageHeight),
-      imageOffsetX: checker(imageOffsetX),
-      imageOffsetY: checker(imageOffsetY)
+      imageAnchorX: checker(imageAnchorX),
+      imageAnchorY: checker(imageAnchorY)
     };
   }
 
@@ -290,7 +290,7 @@ export class YandexMap extends Map {
           iconLayout: 'default#image',
           iconImageHref: templ.imageUrl,
           iconImageSize: [ templ.imageWidth, templ.imageHeight ],
-          iconImageOffset: [ templ.imageOffsetX, templ.imageOffsetY ]
+          iconImageOffset: [ -(templ.imageAnchorX || 0), -(templ.imageAnchorY || 0) ]
         }
       }
     }
@@ -352,14 +352,25 @@ export class GoogleMap extends Map {
   /** Protected area **/
 
   protected _addMarker(point: GoogleMapPointData): void {
-    point.marker = new google.maps.Marker({
+    let markerOpts: google.maps.MarkerOptions = {
       position: {
         lat: point.lat,
         lng: point.long
       },
       map: this._gmap,
-      title: point.title
-    });
+      title: point.title,
+    };
+
+    let templ = point.template ? this.getPointTemplate(point.template) : null;
+    if (templ && templ.imageUrl) {
+      markerOpts.icon = {
+        url: templ.imageUrl,
+        size: new google.maps.Size(templ.imageWidth || 0, templ.imageHeight || 0),
+        anchor: new google.maps.Point(templ.imageAnchorX || 0, templ.imageAnchorY || 0)
+      }
+    }
+
+    point.marker = new google.maps.Marker(markerOpts);
 
     if (point.balloonContent) {
       point.infoWindow = new google.maps.InfoWindow({

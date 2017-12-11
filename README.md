@@ -36,8 +36,8 @@ interface PointTemplate {
   imageUrl?: string;
   imageWidth?: number;
   imageHeight?: number;
-  imageOffsetX?: number;
-  imageOffsetY?: number;
+  imageAnchorX?: number;
+  imageAnchorY?: number;
 }
 ```
 
@@ -132,10 +132,10 @@ Icon to be used for marker.
 
 Image size.
 
-### `data-image-offset-x` and `data-image-offset-y`
+### `data-image-anchor-x` and `data-image-anchor-y`
 
 By default, icon is displayed with top-left corner positioned on a place where it belongs.
-To shift icon, use offset.
+To shift icon, use anchor (the position in the image at which to anchor the marker).
 
 # Styling
 

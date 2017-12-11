@@ -66,7 +66,7 @@ describe("map", function () {
   it('should parse template', function () {
     init(`<div id="map">
       <div class="js-map__point-template" data-name="custom" data-image-url="/image.png" data-image-width="10" data-image-height="30"
-          data-image-offset-x="4" data-image-offset-y="5"></div>
+          data-image-anchor-x="4" data-image-anchor-y="5"></div>
       <div class="js-map__point" data-template="custom" data-lat="10" data-long="10"></div>
     </div>`);
 
@@ -77,8 +77,8 @@ describe("map", function () {
         imageUrl: '/image.png',
         imageWidth: 10,
         imageHeight: 30,
-        imageOffsetX: 4,
-        imageOffsetY: 5
+        imageAnchorX: 4,
+        imageAnchorY: 5
       }
     ] as PointTemplate[]);
     expect(map.getPointTemplate('custom')).to.exist;
