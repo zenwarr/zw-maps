@@ -262,20 +262,22 @@ export class YandexMap extends Map {
     }
 
     if (this.mapContainer) {
-      let center = this.initialCenter || { lat: DEF_CENTER_LAT, long: DEF_CENTER_LONG } as Coords;
-      this._ymap = new ymaps.Map(this.mapContainer as HTMLElement, {
-        center: [ center.lat, center.long ],
-        zoom: this.initialZoom
+      ymaps.ready(() => {
+        let center = this.initialCenter || { lat: DEF_CENTER_LAT, long: DEF_CENTER_LONG } as Coords;
+        this._ymap = new ymaps.Map(this.mapContainer as HTMLElement, {
+          center: [ center.lat, center.long ],
+          zoom: this.initialZoom
+        });
+
+        if (this._options.disableScrollZoom) {
+          this._ymap.behaviors.disable('scrollZoom');
+        }
+
+        for (let q = 0; q < this._points.length; ++q) {
+          let point = this._points[q] as YandexMapPointData;
+          this._addPlacemark(point);
+        }
       });
-
-      if (this._options.disableScrollZoom) {
-        this._ymap.behaviors.disable('scrollZoom');
-      }
-
-      for (let q = 0; q < this._points.length; ++q) {
-        let point = this._points[q] as YandexMapPointData;
-        this._addPlacemark(point);
-      }
     }
   }
 
