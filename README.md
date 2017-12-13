@@ -8,7 +8,7 @@ But you can easily extend its classes and create anything you want using specifi
 # Installation
 
 ```
-npm i --save zw-maps
+npm i --save @zcomp/maps
 ```
 
 # Usage
