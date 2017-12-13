@@ -54,9 +54,12 @@ export declare abstract class Map {
 export interface MapType {
     new (root: Element, options?: MapOptions): Map;
 }
+export declare type MapFunctor = (root: Element, options?: MapOptions) => Map;
 export declare abstract class MapFactory {
     static init(mapType: MapType, options?: MapOptions): void;
+    static initWithFunctor(functor: MapFunctor, options?: MapOptions): void;
     static initMap(mapType: MapType, root: Element, options?: MapOptions): Map;
+    static initMapWithFunctor(functor: MapFunctor, root: Element, options?: MapOptions): Map;
 }
 export declare class DummyMap extends Map {
     protected _panToPoint(point: PointData): void;

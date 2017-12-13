@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import {Coords, DummyMap, Map, MapFactory, PointData, PointTemplate, YandexMap} from './index';
+import InstanceOf = Chai.InstanceOf;
 
 describe("map", function () {
   function init(html: string): void {
@@ -18,6 +19,16 @@ describe("map", function () {
     expect(map.root).to.be.equal(elem('map'));
     expect(Map.fromRoot(elem('map'))).to.be.equal(map);
     expect(map.mapContainer).to.exist;
+  });
+
+  it('should init map using functor', function (done) {
+    init(`<div class="js-map" id="map"></div>`);
+
+    MapFactory.initWithFunctor((root, options) => {
+      expect(root).to.be.equal(elem('map'));
+      done();
+      return new DummyMap(root, options);
+    });
   });
 
   it('should parse map params', function () {

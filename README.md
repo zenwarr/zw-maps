@@ -57,6 +57,19 @@ interface PointTemplate {
 
 The purpose of its attributes is clear from names.
 
+You can have widgets from different map providers on same page.
+Use the following code:
+
+```js
+map.MapFactory.init((root, options) => {
+  if (root.hasAttribute('data-yandex')) {
+    return new YandexMap(root, options);
+  } else {
+    return new GoogleMap(root, options);
+  }
+});
+```
+
 ## MapFactory.init(mapType, options)
 
 Initialize all maps in the document.

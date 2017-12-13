@@ -221,17 +221,27 @@ export interface MapType {
   new (root: Element, options?: MapOptions): Map;
 }
 
+export type MapFunctor = (root: Element, options?: MapOptions) => Map;
+
 export abstract class MapFactory {
   static init(mapType: MapType, options?: MapOptions): void {
+    return this.initWithFunctor((root, options) => new mapType(root, options), options);
+  }
+
+  static initWithFunctor(functor: MapFunctor, options?: MapOptions): void {
     let rootSelector = options && options.rootSelector ? options.rootSelector : DEF_OPTIONS.rootSelector || '';
     let maps = document.querySelectorAll(rootSelector);
     for (let q = 0; q < maps.length; ++q) {
-      this.initMap(mapType, maps[q] as Element, options);
+      this.initMapWithFunctor(functor, maps[q] as Element, options);
     }
   }
 
   static initMap(mapType: MapType, root: Element, options?: MapOptions): Map {
-    return Map.fromRoot(root) || new mapType(root, options);
+    return this.initMapWithFunctor((root, options) => new mapType(root, options), root, options);
+  }
+
+  static initMapWithFunctor(functor: MapFunctor, root: Element, options?: MapOptions): Map {
+    return Map.fromRoot(root) || functor(root, options);
   }
 }
 
