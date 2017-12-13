@@ -14,7 +14,7 @@ npm i --save @zcomp/maps
 # Usage
 
 ```
-const maps = require('zw-maps');
+const maps = require('@zcomp/maps');
 
 maps.MapFactory.init(maps.GoogleMap);
 ```
