@@ -4,20 +4,6 @@ A small helper library that provides a tiny layer of abstraction above different
 It supports Google Maps and Yandex Maps.
 It does not encapsulates any complex features, and only allows to embed a map and display some markers.
 But you can easily extend its classes and create anything you want using specific Google or Yandex api.
-It does not automatically plugs in corresponding APIs, so you should plug them in manually.
-For example, to use Yandex maps, you should have the following in your HTML:
-
-```html
-<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript" />
-```
-
-Or, if you want to use Google maps:
-
-```html
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY" type="text/javascript" />
-```
-
-Note that `async` and `defer` attributes are not supported yet for Google Maps.
 
 # Installation
 

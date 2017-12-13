@@ -1,5 +1,3 @@
-/// <reference types="yandex-maps" />
-/// <reference types="googlemaps" />
 export interface Coords {
     lat: number;
     long: number;
@@ -63,27 +61,4 @@ export declare abstract class MapFactory {
 }
 export declare class DummyMap extends Map {
     protected _panToPoint(point: PointData): void;
-}
-export interface YandexMapPointData extends PointData {
-    placemark: ymaps.Placemark | null;
-}
-export declare class YandexMap extends Map {
-    constructor(root: Element, options?: MapOptions);
-    /** Protected area **/
-    protected _addPlacemark(point: YandexMapPointData): void;
-    protected _parsePoint(elem: Element): YandexMapPointData;
-    protected _panToPoint(point: YandexMapPointData): void;
-    protected _ymap: ymaps.Map;
-}
-export interface GoogleMapPointData extends PointData {
-    marker: google.maps.Marker | null;
-    infoWindow: google.maps.InfoWindow | null;
-}
-export declare class GoogleMap extends Map {
-    constructor(root: Element, options?: MapOptions);
-    /** Protected area **/
-    protected _addMarker(point: GoogleMapPointData): void;
-    protected _parsePoint(elem: Element): GoogleMapPointData;
-    protected _panToPoint(point: GoogleMapPointData): void;
-    protected _gmap: google.maps.Map;
 }
