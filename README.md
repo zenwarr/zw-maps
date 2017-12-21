@@ -16,7 +16,9 @@ npm i --save @zcomp/maps
 ```
 const maps = require('@zcomp/maps');
 
-maps.MapFactory.init(maps.GoogleMap);
+class SomeMapClass extends maps.Map { ... }
+
+maps.MapFactory.init({ /* options */ }, SomeMapClass);
 ```
 
 By default, all elements with class `js-map` are used as map roots.
