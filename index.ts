@@ -2,7 +2,7 @@ import {Component, ComponentFactory, ComponentOptions} from "@zcomp/base";
 
 const DEF_INITIAL_ZOOM = 15;
 
-const DEF_OPTIONS: MapOptions = {
+export const DefaultOptions: MapOptions = {
   rootSelector: '.js-map',
   pointSelector: '.js-map__point',
   containerClass: 'js-map__map',
@@ -208,4 +208,4 @@ export class DummyMap extends Map {
   }
 }
 
-export const MapFactory = new ComponentFactory<Map, MapOptions>('map', DEF_OPTIONS, DummyMap);
+export const MapFactory = new ComponentFactory<Map, MapOptions>('map', DefaultOptions, DummyMap);

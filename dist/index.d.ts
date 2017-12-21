@@ -1,4 +1,5 @@
 import { Component, ComponentFactory, ComponentOptions } from "@zcomp/base";
+export declare const DefaultOptions: MapOptions;
 export interface Coords {
     lat: number;
     long: number;
