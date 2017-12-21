@@ -1,16 +1,15 @@
 {
   "name": "@zcomp/maps",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "lodash.assign": "^4.2.0"
+    "@zcomp/base": "0.0.3"
   },
   "devDependencies": {
     "@types/chai": "^4.0.5",
     "@types/jsdom": "^11.0.4",
-    "@types/lodash.assign": "^4.2.3",
     "@types/mocha": "^2.2.44",
     "chai": "^4.1.2",
     "jsdom": "^11.3.0",

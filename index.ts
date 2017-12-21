@@ -1,8 +1,6 @@
-import lodash_assign = require('lodash.assign');
+import {Component, ComponentFactory, ComponentOptions} from "@zcomp/base";
 
 const DEF_INITIAL_ZOOM = 15;
-const DEF_CENTER_LAT = 55.753742,
-    DEF_CENTER_LONG = 37.620032;
 
 const DEF_OPTIONS: MapOptions = {
   rootSelector: '.js-map',
@@ -34,7 +32,7 @@ export interface PointTemplate {
   imageAnchorY?: number;
 }
 
-export interface MapOptions {
+export interface MapOptions extends ComponentOptions {
   rootSelector?: string;
   pointSelector?: string;
   templateSelector?: string;
@@ -44,14 +42,9 @@ export interface MapOptions {
   pointTemplates?: PointTemplate[];
 }
 
-export abstract class Map {
-  constructor(root: Element, options?: MapOptions) {
-    this._options = assign(options || {}, DEF_OPTIONS) as MapOptions;
-    this._root = root;
-    if ((root as any).__hidden_map) {
-      throw new Error('Cannot construct a map on the same object twice');
-    }
-    (root as any).__hidden_map = this;
+export abstract class Map extends Component<MapOptions> {
+  constructor(root: Element, options: MapOptions) {
+    super(root, options);
 
     let container = this._root.querySelector('.' + this._options.containerClass || '');
     if (!container) {
@@ -88,12 +81,6 @@ export abstract class Map {
       }
     }
   }
-
-  static fromRoot(elem: Element): Map|null {
-    return elem ? (elem as any).__hidden_map || null : null;
-  }
-
-  get root(): Element { return this._root; }
 
   get mapContainer(): Element { return this._mapContainer; }
 
@@ -140,12 +127,10 @@ export abstract class Map {
 
   /** Protected area **/
 
-  protected _root: Element;
   protected _mapContainer: Element;
   protected _initialCenter: Coords|null = null;
   protected _initialZoom: number|null = null;
   protected _points: PointData[] = [];
-  protected _options: MapOptions;
 
   protected _parseMap(): void {
     let centerLat = this._root.getAttribute('data-lat'),
@@ -217,44 +202,10 @@ export abstract class Map {
   protected abstract _panToPoint(point: PointData): void;
 }
 
-export interface MapType {
-  new (root: Element, options?: MapOptions): Map;
-}
-
-export type MapFunctor = (root: Element, options?: MapOptions) => Map;
-
-export abstract class MapFactory {
-  static init(mapType: MapType, options?: MapOptions): void {
-    return this.initWithFunctor((root, options) => new mapType(root, options), options);
-  }
-
-  static initWithFunctor(functor: MapFunctor, options?: MapOptions): void {
-    let rootSelector = options && options.rootSelector ? options.rootSelector : DEF_OPTIONS.rootSelector || '';
-    let maps = document.querySelectorAll(rootSelector);
-    for (let q = 0; q < maps.length; ++q) {
-      this.initMapWithFunctor(functor, maps[q] as Element, options);
-    }
-  }
-
-  static initMap(mapType: MapType, root: Element, options?: MapOptions): Map {
-    return this.initMapWithFunctor((root, options) => new mapType(root, options), root, options);
-  }
-
-  static initMapWithFunctor(functor: MapFunctor, root: Element, options?: MapOptions): Map {
-    return Map.fromRoot(root) || functor(root, options);
-  }
-}
-
-function assign<T>(...objs: T[]): T {
-  if ((Object as any).assign) {
-    return (Object as any).assign.apply(this, objs);
-  } else {
-    return lodash_assign.apply(this, objs);
-  }
-}
-
 export class DummyMap extends Map {
   protected _panToPoint(point: PointData): void {
     // do nothing
   }
 }
+
+export const MapFactory = new ComponentFactory<Map, MapOptions>('map', DEF_OPTIONS, DummyMap);
