@@ -7,7 +7,7 @@ function buildExternals() {
   let modules = {};
 
   fs.readdirSync('node_modules/@zcomp').forEach(function(mod) {
-    modules['@zcomp/' + mod] = 'z' + mod.replace(/[\-_]/g, '').toLowerCase();
+    modules['@zcomp/' + mod] = '@zcomp/' + mod;
   });
 
   return modules;
