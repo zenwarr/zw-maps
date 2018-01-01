@@ -20,8 +20,7 @@ module.exports = [
     output: {
       filename: "index.js",
       path: path.join(__dirname, 'dist'),
-      library: "zmaps",
-      libraryTarget: "var"
+      libraryTarget: "commonjs"
     },
 
     target: 'web',
