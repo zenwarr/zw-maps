@@ -46,6 +46,10 @@ export abstract class Map extends Component<MapOptions> {
   constructor(root: Element, options: MapOptions) {
     super(root, options);
 
+    if (this.options.rootSelector && this.root.querySelector(this.options.rootSelector)) {
+      console.warn(`Unsupported nesting for selector ${this.options.rootSelector}`, this.root);
+    }
+
     let container = this._root.querySelector('.' + this._options.containerClass || '');
     if (!container) {
       // create container itself
